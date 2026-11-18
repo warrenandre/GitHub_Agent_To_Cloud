@@ -1,0 +1,8 @@
+{
+  "githubRepository": "YOUR_GITHUB_OWNER/YOUR_GITHUB_REPOSITORY",
+  "tenantId": "00000000-0000-0000-0000-000000000000",
+  "organization": "YOUR_AZURE_DEVOPS_ORGANIZATION",
+  "project": "YOUR_AZURE_DEVOPS_PROJECT",
+  "appDisplayName": "copilot-azure-devops-sample",
+  "groupName": "Copilot Boards Writers"
+}

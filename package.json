@@ -1,0 +1,20 @@
+{
+  "name": "copilot-azure-devops-sample",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GitHub Copilot cloud agent to Azure Boards using Entra OIDC.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "scripts": {
+    "test": "node --test",
+    "check:mcp": "node scripts/check-mcp.mjs",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "devDependencies": {
+    "@azure-devops/mcp": "2.11.0",
+    "@modelcontextprotocol/sdk": "1.31.0",
+    "yaml": "2.9.1"
+  }
+}

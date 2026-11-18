@@ -1,0 +1,55 @@
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+    inputs:
+      write_smoke_test:
+        description: Create a sample Issue and verify updates, comments and a hyperlink
+        type: boolean
+        default: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: copilot
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Validate integration
+        run: |
+          npm test
+          npm run check:mcp
+
+      - name: Azure login with GitHub OIDC
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2.3.0
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+
+      - name: Verify Azure DevOps MCP access
+        run: npm run smoke
+
+      - name: Verify Boards writes (manual opt-in only)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.write_smoke_test }}
+        run: npm run smoke -- --write

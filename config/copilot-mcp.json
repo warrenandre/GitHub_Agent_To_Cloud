@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "ado": {
+      "type": "local",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure-devops/mcp@2.11.0",
+        "YOUR_AZURE_DEVOPS_ORGANIZATION",
+        "-a",
+        "azcli",
+        "-t",
+        "00000000-0000-0000-0000-000000000000",
+        "-d",
+        "work-items"
+      ],
+      "tools": [
+        "wit_work_item",
+        "wit_query",
+        "wit_work_item_write",
+        "wit_work_item_comment_write",
+        "wit_work_item_link_write"
+      ]
+    }
+  }
+}

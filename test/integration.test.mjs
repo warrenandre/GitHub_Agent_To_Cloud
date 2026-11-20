@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 import { CallTool, ParseToolResult, ValidateSettings, root, settings, configuration } from "../scripts/mcp-client.mjs";
 
@@ -67,6 +70,40 @@ test("MCP configuration uses the locked package, tenant, and Boards-only tools",
   assert.deepEqual(server.args.slice(server.args.indexOf("-d") + 1), ["work-items"]);
   assert.ok(server.tools.length > 0);
   assert.ok(server.tools.every((tool) => /^wit_(work_item|query|work_item_write|work_item_comment_write|work_item_link_write)$/.test(tool)));
+});
+
+test("cloud-sandbox MCP configuration differs only by Entra environment authentication from Copilot MCP secrets", async () => {
+  const sandbox = JSON.parse(await readFile(new URL("config/copilot-mcp.sandbox.json", root), "utf8"));
+  const expected = structuredClone(configuration.mcpServers.ado);
+  expected.args[expected.args.indexOf("-a") + 1] = "env";
+  expected.env = {
+    AZURE_CLIENT_ID: "$COPILOT_MCP_AZURE_CLIENT_ID",
+    AZURE_TENANT_ID: "$COPILOT_MCP_AZURE_TENANT_ID",
+    AZURE_CLIENT_SECRET: "$COPILOT_MCP_AZURE_CLIENT_SECRET",
+  };
+  assert.deepEqual(sandbox, { mcpServers: { ado: expected } });
+});
+
+test("pinned MCP server's env authentication uses the Entra client secret when Azure CLI is unavailable", () => {
+  const probe = `import { createAuthenticator } from "@azure-devops/mcp/dist/auth.js";
+try { await createAuthenticator("env", process.env.AZURE_TENANT_ID)(); console.log("unexpected token"); }
+catch (error) { console.log(String(error.message).split("\\n")[0]); }`;
+  // PATH hides any Azure CLI; the authority is a closed local port so nothing reaches Entra.
+  const result = spawnSync(process.execPath, ["--input-type=module", "-e", probe], {
+    cwd: fileURLToPath(root),
+    encoding: "utf8",
+    timeout: 60_000,
+    env: {
+      PATH: dirname(process.execPath),
+      SystemRoot: process.env.SystemRoot,
+      AZURE_CLIENT_ID: "11111111-1111-4111-8111-111111111111",
+      AZURE_TENANT_ID: "22222222-2222-4222-8222-222222222222",
+      AZURE_CLIENT_SECRET: "not-a-real-secret",
+      AZURE_AUTHORITY_HOST: "https://127.0.0.1:9",
+    },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /^EnvironmentCredential authentication failed/);
 });
 
 test("setup keeps OIDC least-privileged and write validation opt-in", async () => {

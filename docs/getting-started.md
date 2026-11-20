@@ -23,7 +23,8 @@ You also need:
 - A GitHub account with permission to create/administer a private repository and
   configure Actions, environments, Agents secrets and Copilot MCP servers.
 - An enabled Copilot cloud agent subscription and organizational policy allowing
-  **Actions-backed** sessions. GitHub cloud sandbox sessions do not run this setup.
+  **Actions-backed** sessions. GitHub cloud sandbox sessions do not run this setup;
+  for those, see the optional [cloud sandbox route](cloud-sandbox.md).
 - A work/school account in a Microsoft Entra tenant, with permission to register
   applications and create service principals/federated credentials.
 - Administration rights in an Azure DevOps organization connected to that same
@@ -70,15 +71,17 @@ It is **not** a subscription ID, application/client ID, or object ID.
 Prefer a new, dedicated app and group instead of reusing privileged identities.
 
 Update the two matching values in
-[config/copilot-mcp.json](../config/copilot-mcp.json):
+[config/copilot-mcp.json](../config/copilot-mcp.json) and
+[config/copilot-mcp.sandbox.json](../config/copilot-mcp.sandbox.json):
 
 - `YOUR_AZURE_DEVOPS_ORGANIZATION` -> the exact `organization` value.
 - `00000000-0000-0000-0000-000000000000` (after `-t`) -> the exact `tenantId`.
 
 Update the organization and project placeholders at the start of
 [.github/copilot-instructions.md](../.github/copilot-instructions.md).
-Keep the pinned MCP version, `azcli` authentication, `work-items` domain and
-five-tool allowlist unchanged. Documentation examples may keep their placeholders.
+Keep the pinned MCP version, authentication (`azcli`, or `env` in the sandbox
+file), `work-items` domain and five-tool allowlist unchanged. Documentation
+examples may keep their placeholders.
 
 These configuration files contain deployment identifiers, **never credentials**.
 Commit your configured copies only to your private repository, not to the public
@@ -119,8 +122,8 @@ npm run check:mcp
 Expected: all tests pass, followed by
 `Verified 5 allowlisted tools in the pinned MCP server.`
 These checks do not sign in or contact Boards; they also work on the unconfigured
-public template. If the config consistency test fails, align the organization
-and tenant in both JSON files before continuing.
+public template. If a config consistency test fails, align the organization
+and tenant in all three JSON files before continuing.
 
 Review the staged files, then commit and push to the private repository:
 
@@ -139,6 +142,10 @@ branch and its job ID must remain `copilot-setup-steps`.
 Check for secrets before committing; `.gitignore` is not a secret scanner.
 
 ## 6. Sign in to Azure and provision
+
+To create these resources yourself in the Entra, Azure DevOps and GitHub portals
+instead of running the script, follow [manual setup](manual-setup.md), then
+continue at step 7.
 
 Use a dedicated Azure CLI profile **outside the checkout**. The following path
 is for Windows; on Linux/macOS choose a private directory outside the repository.
@@ -271,8 +278,8 @@ for matching existing items before creating duplicates.
 | `403` | Check entitlement, custom project group membership and inherited Area Path permissions. Do not grant Administrator to work around it. |
 | Missing `Issue` type | Use a private Basic-process project, not Agile/Scrum. |
 | Tool not found | Keep the pinned MCP package and matching v2 tool names; do not use older tool names. |
-| No tools in a sandbox session | Use an Actions-backed session; the GitHub cloud sandbox does not run this workflow. |
-| Long-running session loses access | Restart to obtain a new short-lived login; never persist tokens or switch to a PAT. |
+| No tools in a sandbox session | Use an Actions-backed session; the GitHub cloud sandbox does not run this workflow. If you need cloud sandboxes, follow the [cloud sandbox route](cloud-sandbox.md). |
+| Long-running session loses access | Restart to obtain a new short-lived login; never persist tokens or switch to a client secret mid-session. |
 | Setup fails but agent continues | Stop ADO operations, report the failure and fix setup before retrying. |
 
 Before sharing changes publicly, follow the

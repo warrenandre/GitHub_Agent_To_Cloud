@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "ado": {
+      "type": "local",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure-devops/mcp@2.11.0",
+        "YOUR_AZURE_DEVOPS_ORGANIZATION",
+        "-a",
+        "env",
+        "-t",
+        "00000000-0000-0000-0000-000000000000",
+        "-d",
+        "work-items"
+      ],
+      "env": {
+        "AZURE_CLIENT_ID": "$COPILOT_MCP_AZURE_CLIENT_ID",
+        "AZURE_TENANT_ID": "$COPILOT_MCP_AZURE_TENANT_ID",
+        "AZURE_CLIENT_SECRET": "$COPILOT_MCP_AZURE_CLIENT_SECRET"
+      },
+      "tools": [
+        "wit_work_item",
+        "wit_query",
+        "wit_work_item_write",
+        "wit_work_item_comment_write",
+        "wit_work_item_link_write"
+      ]
+    }
+  }
+}

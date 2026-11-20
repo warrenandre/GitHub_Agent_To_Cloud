@@ -3,13 +3,23 @@
 A passwordless sample for GitHub Copilot sessions **running on GitHub Actions**.
 The agent works in GitHub and uses the local Azure DevOps MCP server to work with
 Azure Boards. It does not move the agent or its GitHub pull requests to Azure Repos.
-Sessions in a GitHub cloud sandbox do not run this setup workflow.
+Sessions in a GitHub cloud sandbox do not run this setup workflow; for those, see
+the optional [cloud sandbox route](docs/cloud-sandbox.md).
 
 ## Getting started
 
 **Start with the [step-by-step getting started guide](docs/getting-started.md).**
 It covers prerequisites, creating your own repository, replacing placeholders,
 passwordless provisioning, enabling MCP, and verifying the integration.
+
+Other routes:
+
+- [Manual setup](docs/manual-setup.md): create the same passwordless resources
+  in the Entra, Azure DevOps and GitHub portals instead of running
+  `scripts/Provision.ps1`.
+- [Cloud sandbox](docs/cloud-sandbox.md): an optional, **not passwordless**
+  route for GitHub cloud sandbox sessions. The same service principal signs in
+  with a short-lived client secret from `COPILOT_MCP_` Agents secrets.
 
 This is a **public template for private deployments**. Use a private GitHub copy
 and a private Azure DevOps Basic project. Provisioning intentionally rejects a
@@ -24,14 +34,15 @@ organization's real deployment values.
 | `YOUR_AZURE_DEVOPS_PROJECT` | Your private Basic project name / root Area Path |
 
 Keep [settings](config/settings.json), [MCP configuration](config/copilot-mcp.json),
-and [agent instructions](.github/copilot-instructions.md) consistent. The app and
+[sandbox MCP configuration](config/copilot-mcp.sandbox.json) and
+[agent instructions](.github/copilot-instructions.md) consistent. The app and
 group names are generic defaults; choose dedicated names in your private copy.
 Provisioning and live smoke tests reject unresolved settings placeholders.
 
-No Azure resource group, subscription role, paid Azure compute, app password, or
-PAT is needed. The Azure DevOps organization must be connected to your Entra
-tenant. GitHub Actions/Copilot usage and organizational licensing policies still
-apply.
+The default route needs no Azure resource group, subscription role, paid Azure
+compute, app password, or PAT. The Azure DevOps organization must be connected
+to your Entra tenant. GitHub Actions/Copilot usage and organizational licensing
+policies still apply.
 
 ### Validate the template without cloud access
 
@@ -65,6 +76,8 @@ Version 2 consolidates the older `wit_get_work_item` and
 `wit_get_work_items_batch_by_ids` tools into `wit_work_item` with `get` and
 `get_batch` actions. Do not copy the old tool names into this version's allowlist.
 Only the `work-items` domain loads; there is no `"*"` allowlist.
+The optional [sandbox configuration](config/copilot-mcp.sandbox.json) differs
+only in authentication (`-a env` with a client-secret fallback); tests enforce this.
 
 Tool allowlisting is at tool-name level, not at individual action/field level:
 the comment tool also exposes updates, the link tool exposes unlinking, and
@@ -141,6 +154,8 @@ credential (or disable the Enterprise application), remove the service
 principal's Azure DevOps entitlement/group membership, and remove the two Agents
 and two environment secrets. Delete only the sample resources you intend to
 retire; removing the Entra app does not remove its Azure DevOps membership.
+If you used the sandbox route, also delete the app's `copilot-cloud-sandbox`
+client secret and the three `COPILOT_MCP_AZURE_*` Agents secrets.
 
 ## References
 
